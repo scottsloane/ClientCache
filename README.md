@@ -48,9 +48,12 @@ var Cache = ClientCache({
 ```
 
 ### Add an Item
-Adding an item to the cache is done with the **add** function.  The function takes a *Key*, *Value*, (optional) *Name Space*, and (Optional) *TTL*.  If Optional arguments are left out defaults are used.
+Adding an item to the cache is done with the **add** function.  The function takes a *Key*, *Value*, (optional) *OverWrite*, (optional) *Name Space*, and (Optional) *TTL*.  If Optional arguments are left out defaults are used.  Default *OverWrite* is false.
 
-**Returns**: *true* if success; *false* if bad data was supplied
+**Returns** *(if OverWrite)*: *true* if success; *false* if bad data was supplied
+
+**Returns** *(if not OverWrite)*: *true* if sucess or exists with same data; *false* if exists with different data
+
 ```
 Cache.add('MyItemKey', myData, 'NameSpace');
 ```
@@ -100,8 +103,3 @@ Persistence performance is currently limited by JSON.parse and JSON.stringify.
 Most functions contain at least one for loop that iterates the entire cache.  This can become a bottleneck given a large enough Cache.
 
 ## ToDo
-### Name vs. Hash
-Currently a Cache items name is stored in the Hash attribute of the item.  This is incorrect as hashing is intended for calculating a hash of the entire item.
-
-### Hashing
-Hashing will be added to the Cache items in order to quickly detect if an item exists in the cache with the same information.  This will allow for optional overwrites.

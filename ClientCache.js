@@ -20,7 +20,6 @@ var ClientCache = (function(options) {
 		if(typeof _options.Persist !== 'undefined' && _options.Persist != null) _Options.Persist = _options.Persist;
 
 		_options = null;
-
 		if(_Options.Persist) _reinstate();
 		_maintain_();
 		if(_Options.MaintanceInterval > 0) _maintainanceTimer = window.setInterval(_maintain_, _Options.MaintanceInterval);
@@ -43,10 +42,7 @@ var ClientCache = (function(options) {
 			var HashL = _length(HashNames[i]);
 			if(HashL > _Options.MaxNameSpaceSize) _removeFromNameSpace(HashNames[i], HashL - _Options.MaxNameSpaceSize);
 		}
-		console.log('Cache Size after 1st: ' + _Cache.length);
 		if(_Options.MaxSize > 0 && _Cache.length > _Options.MaxSize) _Cache.splice(0, (_Cache.length - _Options.MaxSize));
-		console.log('Cache Size after 2nd: ' + _Cache.length);
-
 		if(_Options.Persist) _persist();
 	}
 
@@ -66,23 +62,31 @@ var ClientCache = (function(options) {
 		
 		//check vars
 		if(typeof Title === 'undefined' || Title == '' || typeof Data === 'undefined' || Data.length === 0) return false;	
+		if(typeof NameSpace === 'undefined') NameSpace = _Options.defaultNameSpace;
+		if(typeof TTL === 'undefined') TTL = _Options.defaultTTL;
 
-		var hash = getHash(NameSpace+'_'+Title);
+		var hash = getHash({
+			Title : Title,
+			Data : Data,
+			NameSpace : NameSpace
+		});
+		var name = NameSpace+'_'+Title;
 
 		var exists = false;
 		for(var i in _Cache){
-			if(_Cache[i].Hash === hash){
+			if(_Cache[i].Name === name){
 				exists = i;
 				break
 			}
 		}
 
 		var obj = {
-			NameSpace : ((NameSpace) ? NameSpace : _Options.defaultNameSpace),
+			Name : name,
+			NameSpace : NameSpace,
 			Title : Title,
 			Data : Data,
 			Created : Date.now(),
-			Exp : Date.now() + ((TTL) ? TTL : _Options.defaultTTL),
+			Exp : Date.now() + TTL,
 			Hash : hash
 		}
 
@@ -95,9 +99,15 @@ var ClientCache = (function(options) {
 		if(typeof Title === 'undefined' || Title == '') return false;
 		if(typeof NameSpace === 'undefined' || NameSpace === null) NameSpace = _Options.defaultNameSpace;
 
-		var hash = getHash(NameSpace+'_'+Title);
+		var hash = getHash({
+			Title : Title,
+			Data : Data,
+			NameSpace : NameSpace
+		});
+		var name = NameSpace+'_'+Title;
+
 		for(var i in _Cache){
-			if(_Cache[i].Hash === hash){
+			if(_Cache[i].Name === name){
 				_Cache.splice(i, 1);
 				return true;
 			}
@@ -109,9 +119,14 @@ var ClientCache = (function(options) {
 		if(typeof Title === 'undefined' || Title == '') return false;
 		if(typeof NameSpace === 'undefined' || NameSpace === null) NameSpace = _Options.defaultNameSpace;
 
-		var hash = getHash(NameSpace+'_'+Title);
+		var hash = getHash({
+			Title : Title,
+			Data : Data,
+			NameSpace : NameSpace
+		});
+		var name = NameSpace+'_'+Title;
 		for(var i in _Cache){
-			if(_Cache[i].Hash === hash) return _Cache[i].Data;
+			if(_Cache[i].Name === name) return _Cache[i].Data;
 		}
 		return false; 
 	}
@@ -163,9 +178,19 @@ var ClientCache = (function(options) {
 		}
 	}
 
-	var getHash = function(input){
-		console.log('Hashing Options not yet inplemented');
-		return input;
+	var getHash = function(obj){
+		var input = '';
+		if(typeof obj === 'string') input = obj;
+		else if(typeof obj === 'object') input = JSON.stringify(obj);
+
+	    var hash = 0;
+	    if (input.length == 0) return hash;
+	    for (var i = 0; i < input.length; i++) {
+	        char = input.charCodeAt(i);
+	        hash = ((hash<<5)-hash)+char;
+	        hash = hash & hash;
+	    }
+	    return hash;
 	};
 
 	var _getNameSpaceList = function(){
