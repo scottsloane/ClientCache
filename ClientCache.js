@@ -182,6 +182,7 @@ var ClientCache = (function(options) {
 		return ret;
 	}
 
+	if(typeof options === 'undefined') options = {};
 	_init_(options);
 
 	return {
